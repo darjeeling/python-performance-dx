@@ -8,7 +8,12 @@ done
 
 echo "PostgreSQL is ready!"
 
-# 마이그레이션 실행
+# 전달된 명령이 있으면 그것을 실행
+if [ $# -gt 0 ]; then
+    exec "$@"
+fi
+
+# 명령이 없으면 기본 동작: 마이그레이션 + 서버 시작
 python manage.py migrate --noinput
 
 # 서버 타입에 따라 실행 (기본: gunicorn)
