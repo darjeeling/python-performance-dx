@@ -53,7 +53,7 @@ services:
       - WORKERS=4
       - WORKER_CLASS=sync
       - TIMEOUT=120
-      - LOG_LEVEL=info
+      - LOG_LEVEL=INFO
     ports:
       - "8000:8000"
     networks:
@@ -92,7 +92,7 @@ services:
       - WORKERS=4
       - WORKER_CLASS=gevent
       - TIMEOUT=120
-      - LOG_LEVEL=info
+      - LOG_LEVEL=INFO
     ports:
       - "8001:8000"
     networks:
@@ -131,7 +131,7 @@ services:
       - WORKERS=4
       - WORKER_CLASS=gthread
       - TIMEOUT=120
-      - LOG_LEVEL=info
+      - LOG_LEVEL=INFO
     ports:
       - "8002:8000"
     networks:
@@ -168,7 +168,7 @@ services:
       - DB_PORT=5432
       - SERVER_TYPE=uvicorn
       - WORKERS=4
-      - LOG_LEVEL=info
+      - LOG_LEVEL=INFO
     ports:
       - "8003:8000"
     networks:
@@ -206,7 +206,7 @@ services:
       - SERVER_TYPE=gunicorn
       - WORKERS=2
       - WORKER_CLASS=sync
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=DEBUG
     volumes:
       - .:/app
     ports:
