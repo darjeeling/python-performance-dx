@@ -13,9 +13,9 @@ services:
       - "--opentsdbListenAddr=:4242"
       - "--httpListenAddr=:8428"
       - "--influxListenAddr=:8089"
-    # 포트 노출: k6가 InfluxDB 프로토콜로 메트릭 전송
     ports:
-    #  - "8428:8428"      # HTTP API & UI (k6 메트릭 수집용)
+      - "8428:8428"      # HTTP API & UI (k6 메트릭 수집용)
+    # 포트 노출: k6가 prometheus 로 metric write
     #  - "8089:8089"      # InfluxDB protocol
     #  - "8089:8089/udp"
     # 필요 시 추가 포트 활성화:
