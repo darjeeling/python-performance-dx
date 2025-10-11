@@ -86,6 +86,7 @@ services:
     image: grafana/loki:3.4.1
     container_name: loki
     command: ["-config.file=/etc/loki/loki-config.yaml"]
+    user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     ports:
       - "3100:3100"
     volumes:
@@ -128,7 +129,7 @@ services:
     container_name: cadvisor
     privileged: true
     ports:
-      - "8080:8080"
+      - "8081:8080"
     command:
       - "--docker_only=true"
       - "--housekeeping_interval=5s"
