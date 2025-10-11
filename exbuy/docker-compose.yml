@@ -1,8 +1,7 @@
-version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: exbuy-db
     environment:
       POSTGRES_DB: exbuy
@@ -20,8 +19,8 @@ services:
       -c default_statistics_target=100
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    #ports:
+    #  - "5432:5432"
     networks:
       - app-network
     deploy:
@@ -55,7 +54,7 @@ services:
       - TIMEOUT=120
       - LOG_LEVEL=info
     ports:
-      - "8000:8000"
+      - "9000:8000"
     networks:
       - app-network
       - monitoring-network
@@ -94,7 +93,7 @@ services:
       - TIMEOUT=120
       - LOG_LEVEL=info
     ports:
-      - "8001:8000"
+      - "9001:8000"
     networks:
       - app-network
       - monitoring-network
@@ -133,7 +132,7 @@ services:
       - TIMEOUT=120
       - LOG_LEVEL=info
     ports:
-      - "8002:8000"
+      - "9002:8000"
     networks:
       - app-network
       - monitoring-network
@@ -170,7 +169,7 @@ services:
       - WORKERS=4
       - LOG_LEVEL=info
     ports:
-      - "8003:8000"
+      - "9003:8000"
     networks:
       - app-network
       - monitoring-network
@@ -210,7 +209,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8080:8000"
+      - "9080:8000"
     networks:
       - app-network
       - monitoring-network
@@ -227,10 +226,7 @@ networks:
   app-network:
     name: exbuy-app-network
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
 
   monitoring-network:
-    name: monitoring-network
+    name: monitoring_python-performance-dx
     external: true
