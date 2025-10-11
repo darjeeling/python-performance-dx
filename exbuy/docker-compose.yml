@@ -12,7 +12,7 @@ services:
       -c shared_buffers=256MB
       -c max_connections=1000
       -c work_mem=16MB
-      -c effective_cache_size=1GB
+      -c effective_cache_size=2GB
       -c maintenance_work_mem=64MB
       -c checkpoint_completion_target=0.9
       -c wal_buffers=16MB
@@ -23,8 +23,8 @@ services:
     #  - "5432:5432"
     networks:
       - app-network
-    cpus: 2
-    mem_limit: 3g
+    cpus: 6
+    mem_limit: 8g
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
