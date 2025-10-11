@@ -87,7 +87,6 @@ services:
     container_name: loki
     user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     command: ["-config.file=/etc/loki/loki-config.yaml"]
-    user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     ports:
       - "3100:3100"
     volumes:
