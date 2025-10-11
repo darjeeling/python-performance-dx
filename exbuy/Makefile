@@ -14,6 +14,11 @@ help: ## 도움말 표시
 build: ## Docker 이미지 빌드
 	docker compose build
 
+rebuild: ## Docker 이미지 완전 재빌드 (캐시 무시)
+	@echo "이미지를 처음부터 다시 빌드합니다..."
+	@./rebuild.sh || (echo "rebuild.sh 실행 실패" && exit 1)
+	@echo "✓ 재빌드 완료"
+
 up: ## 서비스 시작 (기본: db만)
 	docker compose up -d db
 	@echo "✓ DB 시작됨"
@@ -56,8 +61,8 @@ seed: seed-medium ## 기본 데이터 시딩 (중규모)
 
 # 🔥 워밍업
 warmup: ## 캐시 워밍업
-	@echo "워밍업 중..."
-	@./warmup.sh || (echo "warmup.sh 실행 실패" && exit 1)
+	@echo "워밍업 중... ($(BASE_URL))"
+	@BASE_URL=$(or $(BASE_URL),$(PORT_9000)) ./warmup.sh || (echo "warmup.sh 실행 실패" && exit 1)
 	@echo "✓ 워밍업 완료"
 
 # 🧹 리셋
@@ -106,7 +111,7 @@ test-gunicorn-sync: ## Gunicorn sync 전체 테스트
 
 test-gunicorn-gevent: ## Gunicorn gevent 전체 테스트
 	@echo "=== Gunicorn gevent 테스트 ==="
-	@make warmup
+	@make warmup BASE_URL=http://localhost:9001
 	@make test-read-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 	@sleep 10
 	@make test-write-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
@@ -115,7 +120,7 @@ test-gunicorn-gevent: ## Gunicorn gevent 전체 테스트
 
 test-gunicorn-gthread: ## Gunicorn gthread 전체 테스트
 	@echo "=== Gunicorn gthread 테스트 ==="
-	@make warmup
+	@make warmup BASE_URL=http://localhost:9002
 	@make test-read-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 	@sleep 10
 	@make test-write-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
@@ -124,7 +129,7 @@ test-gunicorn-gthread: ## Gunicorn gthread 전체 테스트
 
 test-uvicorn: ## Uvicorn 전체 테스트
 	@echo "=== Uvicorn 테스트 ==="
-	@make warmup
+	@make warmup BASE_URL=http://localhost:9003
 	@make test-read-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
 	@sleep 10
 	@make test-write-heavy SERVER=uvicorn PORT_9000=http://localhost:9003

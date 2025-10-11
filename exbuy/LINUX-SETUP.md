@@ -6,7 +6,7 @@
 
 ### 1. 스크립트 실행 권한 설정
 ```bash
-chmod +x warmup.sh reset-test.sh run-tests.sh
+chmod +x warmup.sh reset-test.sh run-tests.sh rebuild.sh
 ```
 
 ### 2. 모니터링 네트워크 생성
@@ -34,11 +34,14 @@ vi .env
 # 1. 전체 환경 구성
 make quickstart
 
-# 2. 테스트 실행
+# 2. 이미지 변경 시 완전 재빌드 (캐시 무시)
+make rebuild
+
+# 3. 테스트 실행
 make test-read-heavy
 make test-mixed
 
-# 3. 모든 서버 비교
+# 4. 모든 서버 비교
 make test-all
 ```
 
@@ -212,6 +215,25 @@ sudo apt-get update && sudo apt-get install k6
 k6 run --http-debug k6-scripts/mixed.js
 ```
 
+### 5. 이미지 캐시 문제 / 코드 변경 미반영
+```bash
+# Dockerfile이나 requirements.txt 변경 시 캐시 때문에 반영 안될 수 있음
+
+# 방법 1: Makefile 사용 (권장)
+make rebuild
+
+# 방법 2: 수동 실행
+./rebuild.sh
+
+# 방법 3: Docker Compose 직접 사용
+docker compose down
+docker compose build --no-cache
+docker builder prune -f
+
+# 특정 이미지만 재빌드
+docker compose build --no-cache web-gunicorn-sync
+```
+
 ## 성능 최적화 체크리스트
 
 ### 배포 전
@@ -244,6 +266,9 @@ k6 run --http-debug k6-scripts/mixed.js
 ## 유용한 명령어
 
 ```bash
+# 이미지 재빌드 (캐시 무시)
+make rebuild
+
 # 헬스 체크
 make check-health
 
