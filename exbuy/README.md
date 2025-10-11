@@ -156,17 +156,23 @@ GET /api/reviews?product_id=1&optimize=true
 ```bash
 cd exbuy
 
-# 빌드 및 실행
-docker compose up -d
+# 빌드
+docker compose build web-gunicorn-sync
+
+# 실행 (마이그레이션 자동 실행됨)
+docker compose --profile gunicorn-sync up -d
 
 # 로그 확인
-docker compose logs -f web
+docker compose logs -f web-gunicorn-sync
 
-# 마이그레이션 (자동 실행됨)
-docker compose exec web python manage.py migrate
+# Django 관리 명령 실행
+# docker compose run을 사용하면 entrypoint를 통해 전달된 명령이 실행됩니다
+docker compose run --rm web-gunicorn-sync python manage.py makemigrations
+docker compose run --rm web-gunicorn-sync python manage.py migrate
+docker compose run --rm web-gunicorn-sync python manage.py seed_data --products 10000 --orders 50000 --reviews 100000
 
-# 데이터 시딩
-docker compose exec web python manage.py seed_data --products 10000 --orders 50000 --reviews 100000
+# 또는 실행 중인 컨테이너에서 명령 실행
+docker compose exec web-gunicorn-sync python manage.py seed_data --products 1000
 
 # 서비스 중지
 docker compose down
@@ -384,13 +390,24 @@ psql -h localhost -U postgres -d exbuy
 
 ### 마이그레이션 오류
 ```bash
-# 마이그레이션 초기화
-docker compose exec web python manage.py migrate --run-syncdb
+# 모델 변경사항 확인
+docker compose run --rm web-gunicorn-sync python manage.py makemigrations --dry-run
 
-# 마이그레이션 재생성
-docker compose exec web python manage.py makemigrations
-docker compose exec web python manage.py migrate
+# 마이그레이션 파일 생성
+docker compose run --rm web-gunicorn-sync python manage.py makemigrations
+
+# 마이그레이션 적용
+docker compose run --rm web-gunicorn-sync python manage.py migrate
+
+# 또는 실행 중인 컨테이너에서
+docker compose exec web-gunicorn-sync python manage.py makemigrations
+docker compose exec web-gunicorn-sync python manage.py migrate
+
+# 마이그레이션 초기화 (필요한 경우)
+docker compose run --rm web-gunicorn-sync python manage.py migrate --run-syncdb
 ```
+
+**참고:** `docker compose run`을 사용하면 전달된 명령이 실행되고, `docker compose up`이나 `docker compose exec`를 사용하면 기본 entrypoint(migrate + 서버 시작)가 실행됩니다.
 
 ## 라이선스
 
