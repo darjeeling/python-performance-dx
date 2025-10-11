@@ -1,0 +1,39 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # 1️⃣ Docker 컨테이너 로그 자동 수집
+  - job_name: docker-containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker
+          __path__: /var/lib/docker/containers/*/*.log
+    pipeline_stages:
+      - docker: {}
+
+  # 2️⃣ k6 로그 (호스트 지정 경로)
+  - job_name: k6-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: k6
+          __path__: /mnt/config/k6/logs/*.log
+
+  # 3️⃣ 시스템 로그 (/var/log/*.log)
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
