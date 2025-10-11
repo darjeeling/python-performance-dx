@@ -23,14 +23,8 @@ services:
     #  - "5432:5432"
     networks:
       - app-network
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 1G
-        reservations:
-          cpus: '1'
-          memory: 512M
+    cpus: 2
+    mem_limit: 3g
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -61,14 +55,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
+    cpus: 1
+    mem_limit: 2g
     labels:
       - "prometheus.scrape=true"
       - "prometheus.port=8000"
@@ -100,14 +88,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
+    cpus: 1
+    mem_limit: 2g
     labels:
       - "prometheus.scrape=true"
       - "prometheus.port=8000"
@@ -139,14 +121,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
+    cpus: 1
+    mem_limit: 2g
     labels:
       - "prometheus.scrape=true"
       - "prometheus.port=8000"
@@ -176,14 +152,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2G
-        reservations:
-          cpus: '1'
-          memory: 1G
+    cpus: 1
+    mem_limit: 2g
     labels:
       - "prometheus.scrape=true"
       - "prometheus.port=8000"
