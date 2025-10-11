@@ -108,6 +108,44 @@ test-mixed: ## 혼합 테스트
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-mixed.log \
 		k6-scripts/mixed.js
 
+test-read-only: ## 순수 읽기 전용 테스트 (5분 30초, 매분 30초 시작)
+	@echo "💡 VU 변경: make test-read-only SERVER=<server> PORT_9000=<url> MAX_VU=<number>"
+	@echo "=== 테스트 시작 ==="
+	@echo "서버 타입: $(SERVER)"
+	@echo "시나리오: read-only"
+	@START_TIME=$$(date '+%Y-%m-%d %H:%M:%S'); \
+	echo "시작 예정: $$START_TIME"; \
+	echo "VU 설정: $(or $(MAX_VU),200)"; \
+	echo "==================================="; \
+	echo "매분 30초에 시작하도록 대기 중..."; \
+	current=$$(date +%s); \
+	seconds=$$((current % 60)); \
+	if [ $$seconds -lt 30 ]; then \
+		sleep $$((30 - seconds)); \
+	else \
+		sleep $$((90 - seconds)); \
+	fi; \
+	START_TIME=$$(date '+%Y-%m-%d %H:%M:%S'); \
+	echo "실제 시작: $$START_TIME"; \
+	mkdir -p results; \
+	mkdir -p ../monitoring/k6/logs; \
+	K6_PROMETHEUS_RW_SERVER_URL=http://localhost:8428/api/v1/write \
+	BASE_URL=$(PORT_9000) k6 run \
+		--tag server_type=$(SERVER) \
+		--tag scenario=read-only \
+		--out json=results/$(SERVER)-read-only.json \
+		--out experimental-prometheus-rw \
+		--log-output=file=../monitoring/k6/logs/$(SERVER)-read-only.log \
+		k6-scripts/read-only.js; \
+	END_TIME=$$(date '+%Y-%m-%d %H:%M:%S'); \
+	echo "==================================="; \
+	echo "=== 테스트 완료 ==="; \
+	echo "서버 타입: $(SERVER)"; \
+	echo "시나리오: read-only"; \
+	echo "시작 시간: $$START_TIME"; \
+	echo "종료 시간: $$END_TIME"; \
+	echo "==================================="
+
 # 서버별 전체 테스트
 test-gunicorn-sync: ## Gunicorn sync 전체 테스트
 	@echo "=== Gunicorn sync 테스트 ==="
@@ -144,6 +182,31 @@ test-uvicorn: ## Uvicorn 전체 테스트
 	-@make test-write-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
 	@sleep 10
 	-@make test-mixed SERVER=uvicorn PORT_9000=http://localhost:9003
+
+# 서버별 Read-Only 테스트
+test-read-only-gunicorn-sync: ## Gunicorn sync Read-Only 테스트
+	@echo "=== Gunicorn sync Read-Only 테스트 ==="
+	@echo "💡 VU 변경: make test-read-only-gunicorn-sync MAX_VU=300"
+	-@make warmup BASE_URL=http://localhost:9000
+	-@make test-read-only SERVER=gunicorn-sync PORT_9000=http://localhost:9000
+
+test-read-only-gunicorn-gevent: ## Gunicorn gevent Read-Only 테스트
+	@echo "=== Gunicorn gevent Read-Only 테스트 ==="
+	@echo "💡 VU 변경: make test-read-only-gunicorn-gevent MAX_VU=300"
+	-@make warmup BASE_URL=http://localhost:9001
+	-@make test-read-only SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
+
+test-read-only-gunicorn-gthread: ## Gunicorn gthread Read-Only 테스트
+	@echo "=== Gunicorn gthread Read-Only 테스트 ==="
+	@echo "💡 VU 변경: make test-read-only-gunicorn-gthread MAX_VU=300"
+	-@make warmup BASE_URL=http://localhost:9002
+	-@make test-read-only SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
+
+test-read-only-uvicorn: ## Uvicorn Read-Only 테스트
+	@echo "=== Uvicorn Read-Only 테스트 ==="
+	@echo "💡 VU 변경: make test-read-only-uvicorn MAX_VU=300"
+	-@make warmup BASE_URL=http://localhost:9003
+	-@make test-read-only SERVER=uvicorn PORT_9000=http://localhost:9003
 
 test-all: ## 모든 서버 비교 테스트
 	@echo "=== 전체 서버 비교 테스트 시작 ==="
