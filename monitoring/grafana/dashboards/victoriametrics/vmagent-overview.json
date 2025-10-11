@@ -1,0 +1,84 @@
+{
+  "title": "vmagent - Overview",
+  "uid": "vmagent-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["vmagent", "victoriametrics"],
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "prom",
+        "label": "Prometheus DS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {"text": "VictoriaMetrics", "value": "VictoriaMetrics"},
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Targets (up)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [{"expr": "sum(up)"}]
+    },
+    {
+      "type": "stat",
+      "title": "Scrapes/sec",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [{"expr": "sum(rate(prometheus_scrape_samples_scraped[1m]))"}]
+    },
+    {
+      "type": "stat",
+      "title": "Samples Sent/sec",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [{"expr": "sum(rate(vmagent_remotewrite_rows_sent_total[1m]))"}]
+    },
+    {
+      "type": "stat",
+      "title": "Remote Write Errors/sec",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [{"expr": "sum(rate(vmagent_remotewrite_retries_total[1m]))"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Targets by Job (up)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [{"expr": "sum(up) by (job)", "legendFormat": "{{job}}"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Scraped Samples/sec by Job",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [{"expr": "sum(rate(prometheus_scrape_samples_scraped[5m])) by (job)", "legendFormat": "{{job}}"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Remote Write: Rows Sent / Retries",
+      "gridPos": {"x": 0, "y": 13, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(vmagent_remotewrite_rows_sent_total[5m])) by (url)", "legendFormat": "sent {{url}}"},
+        {"expr": "sum(rate(vmagent_remotewrite_retries_total[5m])) by (url)", "legendFormat": "retries {{url}}"}
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Scrape Targets Health",
+      "gridPos": {"x": 12, "y": 13, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "up", "format": "table", "instant": true}
+      ],
+      "options": {"showHeader": true}
+    }
+  ]
+}

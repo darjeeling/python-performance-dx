@@ -1,0 +1,87 @@
+{
+  "title": "Promtail - Overview",
+  "uid": "promtail-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["promtail", "logs"],
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "prom",
+        "label": "Prometheus DS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {"text": "VictoriaMetrics", "value": "VictoriaMetrics"},
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Entries Sent/sec",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_promtail_entries_total[1m]))", "legendFormat": "entries/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Dropped Lines/sec",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_promtail_dropped_entries_total[1m]))", "legendFormat": "dropped/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Retry Attempts/sec",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_promtail_retries_total[1m]))", "legendFormat": "retries/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Scrape Targets",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "count(loki_promtail_scrape_targets)", "legendFormat": "targets"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Entries Sent/sec (sources)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum by (job) (rate(loki_promtail_entries_total[5m]))", "legendFormat": "{{job}}"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Dropped / Retries",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_promtail_dropped_entries_total[5m]))", "legendFormat": "dropped"},
+        {"expr": "sum(rate(loki_promtail_retries_total[5m]))", "legendFormat": "retries"}
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Active Targets (by job)",
+      "gridPos": {"x": 0, "y": 13, "w": 24, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "loki_promtail_scrape_targets", "format": "table", "instant": true}
+      ],
+      "options": {"showHeader": true}
+    }
+  ]
+}

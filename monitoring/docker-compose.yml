@@ -1,0 +1,145 @@
+version: "3.8"
+
+networks:
+  monitoring:
+    driver: bridge
+
+services:
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.127.0
+    container_name: victoriametrics
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+    ports:
+      - "8428:8428"
+      - "8089:8089"
+      - "8089:8089/udp"
+      - "2003:2003"
+      - "2003:2003/udp"
+      - "4242:4242"
+    # 데이터: 로컬 디렉터리 바인드 마운트
+    volumes:
+      - "${DATA_DIR}/victoria-metrics:/storage"
+    restart: unless-stopped
+    networks: [monitoring]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8428/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.127.0
+    container_name: vmagent
+    depends_on:
+      - victoriametrics
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+      # 필요 시 로컬 버퍼 사용 시 아래 두 줄 활성화 권장
+      # - "--remoteWrite.tmpDataPath=/vmagentdata"
+      # - "--remoteWrite.maxDiskUsagePerURL=10GB"
+    ports:
+      - "8429:8429"
+    volumes:
+      # vmagent 임시/버퍼 저장소(선택): 활성화 시 위 tmpDataPath도 함께 설정
+      - "${DATA_DIR}/vmagent:/vmagentdata"
+      # 스크레이프 설정 파일(기존 구성 유지)
+      - "${CFG_DIR}/vmagent/prometheus-vm-single.yml:/etc/prometheus/prometheus.yml:ro"
+    restart: unless-stopped
+    networks: [monitoring]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8429/targets"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    container_name: grafana
+    depends_on:
+      - victoriametrics
+      - loki
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      # 데이터(대시보드 임포트 후 상태 등)
+      - "${DATA_DIR}/grafana:/var/lib/grafana"
+      # 프로비저닝/대시보드(기존 구성 유지)
+      - "${CFG_DIR}/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro"
+      - "${CFG_DIR}/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro"
+      - "${CFG_DIR}/grafana/dashboards:/var/lib/grafana/dashboards:ro"
+    restart: unless-stopped
+    networks: [monitoring]
+
+  loki:
+    image: grafana/loki:3.4.1
+    container_name: loki
+    command: ["-config.file=/etc/loki/loki-config.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      # 설정 파일(기존 구성 유지)
+      - "${CFG_DIR}/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro"
+      # loki-config.yaml 에서 path_prefix=/tmp/loki 로 되어 있으므로 여기에 영속화
+      - "${DATA_DIR}/loki:/tmp/loki"
+    restart: unless-stopped
+    networks: [monitoring]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  promtail:
+    image: grafana/promtail:3.4.1
+    container_name: promtail
+    depends_on:
+      - loki
+    command: ["-config.file=/etc/promtail/promtail-config.yaml"]
+    volumes:
+      # 설정 파일(기존 구성 유지)
+      - "${CFG_DIR}/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro"
+      # 호스트 로그 경로
+      - "/var/log:/var/log:ro"
+      # 도커 컨테이너 stdout/stderr
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # k6 로그 디렉터리(원하시는 경로를 CFG_DIR 하위로 둘 수도 있음)
+      - "${CFG_DIR}/k6/logs:/mnt/k6logs:ro"
+      # (선택) promtail positions 파일을 영속화하고 싶다면:
+      # - "${DATA_DIR}/promtail/positions.yaml:/tmp/positions.yaml"
+    restart: unless-stopped
+    networks: [monitoring]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    privileged: true
+    ports:
+      - "8080:8080"
+    command:
+      - "--docker_only=true"
+      - "--housekeeping_interval=5s"
+      - "--store_container_labels=false"
+      - "--whitelisted_container_labels=com.docker.compose.service,com.docker.compose.project"
+      - "--enable_metrics=cpu,memory,network,disk,process"
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+      - "/dev/disk/:/dev/disk:ro"
+    restart: unless-stopped
+    networks: [monitoring]

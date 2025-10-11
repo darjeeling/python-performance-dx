@@ -1,0 +1,96 @@
+{
+  "title": "Loki - Overview",
+  "uid": "loki-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["loki", "overview"],
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "prom",
+        "label": "Prometheus DS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {"text": "VictoriaMetrics", "value": "VictoriaMetrics"},
+        "options": []
+      },
+      {
+        "name": "loki",
+        "label": "Loki DS",
+        "type": "datasource",
+        "query": "loki",
+        "current": {"text": "Loki", "value": "Loki"},
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Ingested Lines/sec",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_ingester_ingested_lines_total[1m]))", "legendFormat": "lines/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Index Entries/sec",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_index_entries_total[1m]))", "legendFormat": "index/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Request Errors/sec",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_request_duration_seconds_count{status_code=~\"5..\"}[1m]))", "legendFormat": "5xx/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Chunk Store Size (approx)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(loki_boltdb_shipper_table_size_bytes)", "legendFormat": "bytes"}
+      ],
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "fieldOptions": {"defaults": {"unit": "bytes"}}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Ingested Lines/sec by Component",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_ingester_ingested_lines_total[5m])) by (job)", "legendFormat": "{{job}}"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Read/Write Requests/sec",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(loki_request_duration_seconds_count{route=~\"/loki/api/.*/(query|query_range)\"}[5m]))", "legendFormat": "reads"},
+        {"expr": "sum(rate(loki_request_duration_seconds_count{route=~\"/loki/api/.*/(push)\"}[5m]))", "legendFormat": "writes"}
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Recent Logs (sample)",
+      "gridPos": {"x": 0, "y": 13, "w": 24, "h": 9},
+      "datasource": {"type": "loki", "uid": "${loki}"},
+      "targets": [
+        {"expr": "{job=~\".+\"} |~ \".*\"", "queryType": "range", "refId": "A"}
+      ],
+      "options": {"wrapLogMessage": true}
+    }
+  ]
+}

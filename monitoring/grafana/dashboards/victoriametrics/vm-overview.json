@@ -1,0 +1,99 @@
+{
+  "title": "VictoriaMetrics - Overview",
+  "uid": "vm-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["victoriametrics", "overview"],
+  "time": {"from": "now-6h", "to": "now"},
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "prom",
+        "label": "Prometheus DS",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {"text": "VictoriaMetrics", "value": "VictoriaMetrics"},
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Active Time Series",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(victoria_metrics_active_timeseries)", "legendFormat": "active_ts"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Ingest Samples/sec",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(victoria_metrics_ingested_samples_total[1m]))", "legendFormat": "ingest/s"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Query Requests/sec",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(victoria_metrics_http_requests_total{path=~\"/api/v1/(query|query_range)\"}[1m]))", "legendFormat": "qps"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Disk Space Used (storage)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "max(victoria_metrics_storage_size_bytes)", "legendFormat": "bytes"}
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "fieldOptions": {"defaults": {"unit": "bytes"}}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Ingested Samples/sec (rate)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(victoria_metrics_ingested_samples_total[5m])) by (job)", "legendFormat": "{{job}}"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Queries/sec & Errors",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 9},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(rate(victoria_metrics_http_requests_total{path=~\"/api/v1/(query|query_range)\"}[5m]))", "legendFormat": "qps"},
+        {"expr": "sum(rate(victoria_metrics_http_requests_errors_total[5m]))", "legendFormat": "errors/s"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Storage Size / Chunks",
+      "gridPos": {"x": 0, "y": 13, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "victoria_metrics_storage_size_bytes", "legendFormat": "size"},
+        {"expr": "victoria_metrics_rows", "legendFormat": "rows"}
+      ],
+      "options": {"fieldOptions": {"overrides": [{"matcher": {"id": "byName", "options": "size"}, "properties": [{"id": "unit", "value": "bytes"}]}]}}
+    },
+    {
+      "type": "timeseries",
+      "title": "Scrape Targets Up (by job via vmagent)",
+      "gridPos": {"x": 12, "y": 13, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "${prom}"},
+      "targets": [
+        {"expr": "sum(up) by (job)", "legendFormat": "{{job}}"}
+      ]
+    }
+  ]
+}
