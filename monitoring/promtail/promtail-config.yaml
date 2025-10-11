@@ -27,7 +27,7 @@ scrape_configs:
           - localhost
         labels:
           job: k6
-          __path__: /mnt/config/k6/logs/*.log
+          __path__: /mnt/k6logs/*.log
 
   # 3️⃣ 시스템 로그 (/var/log/*.log)
   - job_name: system

@@ -4,10 +4,15 @@ global:
 
 scrape_configs:
 
-  # (예) Django/DRF 앱이 /metrics 를 노출한다면 여기에 추가
-  # - job_name: drf
-  #   static_configs:
-  #     - targets: ["drf-service:8000"]
+  # ExBuy Django/DRF 앱 메트릭 (4개 서버)
+  - job_name: exbuy
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "exbuy-gunicorn-sync:8000"
+          - "exbuy-gunicorn-gevent:8000"
+          - "exbuy-gunicorn-gthread:8000"
+          - "exbuy-uvicorn:8000"
 
   # cAdvisor 메트릭
   - job_name: cadvisor

@@ -57,16 +57,16 @@ docker compose run --rm web-gunicorn-sync python manage.py migrate
 docker compose run --rm web-gunicorn-sync python manage.py seed_data
 
 # 5. 서버 시작 (원하는 타입 선택)
-docker compose --profile gunicorn-sync up -d     # 포트 8000
-docker compose --profile gunicorn-gevent up -d   # 포트 8001
-docker compose --profile gunicorn-gthread up -d  # 포트 8002
-docker compose --profile uvicorn up -d           # 포트 8003
+docker compose --profile gunicorn-sync up -d     # 포트 9000
+docker compose --profile gunicorn-gevent up -d   # 포트 9001
+docker compose --profile gunicorn-gthread up -d  # 포트 9002
+docker compose --profile uvicorn up -d           # 포트 9003
 
 # 6. 워밍업
 ./warmup.sh
 
 # 7. K6 테스트
-BASE_URL=http://localhost:8000 k6 run k6-scripts/read-heavy.js
+BASE_URL=http://localhost:9000 k6 run k6-scripts/read-heavy.js
 ```
 
 ## 서버 구성 비교
@@ -74,10 +74,10 @@ BASE_URL=http://localhost:8000 k6 run k6-scripts/read-heavy.js
 ### 포트 매핑
 | 서버 타입 | Worker 클래스 | 포트 | Profile |
 |----------|--------------|------|---------|
-| Gunicorn | sync | 8000 | `gunicorn-sync` |
-| Gunicorn | gevent | 8001 | `gunicorn-gevent` |
-| Gunicorn | gthread | 8002 | `gunicorn-gthread` |
-| Uvicorn | ASGI | 8003 | `uvicorn` |
+| Gunicorn | sync | 9000 | `gunicorn-sync` |
+| Gunicorn | gevent | 9001 | `gunicorn-gevent` |
+| Gunicorn | gthread | 9002 | `gunicorn-gthread` |
+| Uvicorn | ASGI | 9003 | `uvicorn` |
 
 ### 리소스 제한
 각 서비스는 다음과 같이 리소스가 제한됩니다:
@@ -109,24 +109,24 @@ make compare
 ### 2. 최적화 효과 측정
 ```bash
 # 최적화 없음
-curl http://localhost:8000/api/products/1
+curl http://localhost:9000/api/products/1
 
 # 최적화 적용
-curl http://localhost:8000/api/products/1?optimize=true
+curl http://localhost:9000/api/products/1?optimize=true
 
 # K6로 비교 테스트
-BASE_URL=http://localhost:8000 k6 run k6-scripts/read-heavy.js
+BASE_URL=http://localhost:9000 k6 run k6-scripts/read-heavy.js
 ```
 
 ### 3. 동시성 제어 비교
 ```bash
 # 낙관적 락
-curl -X POST http://localhost:8000/api/inventory/reserve?lock_type=optimistic \
+curl -X POST http://localhost:9000/api/inventory/reserve?lock_type=optimistic \
   -H "Content-Type: application/json" \
   -d '{"product_id": 1, "quantity": 1}'
 
 # 비관적 락
-curl -X POST http://localhost:8000/api/inventory/reserve?lock_type=pessimistic \
+curl -X POST http://localhost:9000/api/inventory/reserve?lock_type=pessimistic \
   -H "Content-Type: application/json" \
   -d '{"product_id": 1, "quantity": 1}'
 ```
@@ -136,7 +136,7 @@ curl -X POST http://localhost:8000/api/inventory/reserve?lock_type=pessimistic \
 ### Prometheus 메트릭
 ```bash
 # 메트릭 확인
-curl http://localhost:8000/metrics
+curl http://localhost:9000/metrics
 
 # 주요 메트릭
 # - django_http_requests_latency_seconds
@@ -182,11 +182,11 @@ docker compose --profile gunicorn-sync up -d
 ### 2. 포트 충돌
 ```bash
 # 사용 중인 포트 확인
-sudo netstat -tlnp | grep :8000
+sudo netstat -tlnp | grep :9000
 
 # docker-compose.yml에서 포트 변경
 # ports:
-#   - "8010:8000"  # 8010으로 변경
+#   - "9010:8000"  # 9010으로 변경
 ```
 
 ### 3. 메모리 부족

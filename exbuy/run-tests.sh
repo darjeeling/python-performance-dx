@@ -64,27 +64,47 @@ echo "5) Skip load test"
 echo ""
 read -p "Enter choice (1-5): " choice
 
+mkdir -p ../monitoring/k6/logs
+
 case $choice in
     1)
         echo -e "${BLUE}Running read-heavy scenario...${NC}"
-        k6 run k6-scripts/read-heavy.js
+        k6 run \
+            --out influxdb=http://localhost:8089/exbuy \
+            --log-output=file=../monitoring/k6/logs/read-heavy.log \
+            k6-scripts/read-heavy.js
         ;;
     2)
         echo -e "${BLUE}Running write-heavy scenario...${NC}"
-        k6 run k6-scripts/write-heavy.js
+        k6 run \
+            --out influxdb=http://localhost:8089/exbuy \
+            --log-output=file=../monitoring/k6/logs/write-heavy.log \
+            k6-scripts/write-heavy.js
         ;;
     3)
         echo -e "${BLUE}Running mixed scenario...${NC}"
-        k6 run k6-scripts/mixed.js
+        k6 run \
+            --out influxdb=http://localhost:8089/exbuy \
+            --log-output=file=../monitoring/k6/logs/mixed.log \
+            k6-scripts/mixed.js
         ;;
     4)
         echo -e "${BLUE}Running all scenarios...${NC}"
         echo -e "\n${YELLOW}=== Read-Heavy ===${NC}"
-        k6 run k6-scripts/read-heavy.js
+        k6 run \
+            --out influxdb=http://localhost:8089/exbuy \
+            --log-output=file=../monitoring/k6/logs/all-read-heavy.log \
+            k6-scripts/read-heavy.js
         echo -e "\n${YELLOW}=== Write-Heavy ===${NC}"
-        k6 run k6-scripts/write-heavy.js
+        k6 run \
+            --out influxdb=http://localhost:8089/exbuy \
+            --log-output=file=../monitoring/k6/logs/all-write-heavy.log \
+            k6-scripts/write-heavy.js
         echo -e "\n${YELLOW}=== Mixed ===${NC}"
-        k6 run k6-scripts/mixed.js
+        k6 run \
+            --out influxdb=http://localhost:8089/exbuy \
+            --log-output=file=../monitoring/k6/logs/all-mixed.log \
+            k6-scripts/mixed.js
         ;;
     5)
         echo -e "${YELLOW}Skipping load test${NC}"

@@ -13,12 +13,12 @@ services:
       - "--opentsdbListenAddr=:4242"
       - "--httpListenAddr=:8428"
       - "--influxListenAddr=:8089"
-    # 포트 노출 불필요: vmagent가 내부 네트워크(http://victoriametrics:8428)로 데이터 전송
-    # 외부에서 직접 메트릭을 보내거나 VM UI 접근이 필요한 경우에만 활성화
-    # ports:
+    # 포트 노출: k6가 InfluxDB 프로토콜로 메트릭 전송
+    ports:
+      - "8089:8089"      # InfluxDB protocol (k6 메트릭 수집용)
+      - "8089:8089/udp"
+    # 필요 시 추가 포트 활성화:
     #   - "8428:8428"      # HTTP API & UI
-    #   - "8089:8089"      # InfluxDB protocol
-    #   - "8089:8089/udp"
     #   - "2003:2003"      # Graphite protocol
     #   - "2003:2003/udp"
     #   - "4242:4242"      # OpenTSDB protocol
