@@ -55,6 +55,39 @@ CFG_DIR=.
 
 ------------------------------------------------------------------------
 
+## 🛠️ 초기 설정
+
+Docker Compose를 실행하기 전에 반드시 아래 설정 과정을 거쳐야 합니다.
+
+### 1. `.env` 파일 생성
+
+``` bash
+cp .env.example .env
+```
+
+`.env` 파일을 열어서 `DATA_DIR`과 `CFG_DIR`을 원하는 경로로 수정하세요:
+
+``` bash
+# 예시
+DATA_DIR=/opt/monitoring-data
+CFG_DIR=/opt/monitoring-config
+```
+
+### 2. 환경 설정 및 디렉토리 생성
+
+``` bash
+./setup.sh
+```
+
+이 스크립트는 다음을 수행합니다:
+- 현재 사용자의 UID/GID를 자동으로 `.env`에 설정
+- `DATA_DIR` 및 하위 디렉토리 생성 (victoria-metrics, vmagent, grafana, loki)
+- `CFG_DIR` 생성
+- 설정 파일들(grafana, loki, promtail, vmagent, k6)을 `CFG_DIR`로 복사
+- 디렉토리 권한 설정
+
+------------------------------------------------------------------------
+
 ## 🚀 실행 및 종료
 
 ``` bash
