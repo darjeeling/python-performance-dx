@@ -16,44 +16,27 @@ class ProductListSerializer(serializers.ModelSerializer):
 class ProductDetailSerializer(serializers.ModelSerializer):
     """
     상품 상세 조회용 (전체 필드)
+    주의: ViewSet에서 annotate(review_count=Count('reviews'), average_rating=Avg('reviews__rating')) 필요
     """
-    review_count = serializers.SerializerMethodField()
-    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Product
         fields = '__all__'
-
-    def get_review_count(self, obj):
-        return obj.reviews.count()
-
-    def get_average_rating(self, obj):
-        reviews = obj.reviews.all()
-        if reviews:
-            return sum(r.rating for r in reviews) / len(reviews)
-        return None
 
 
 class ProductDetailOptimizedSerializer(serializers.ModelSerializer):
     """
-    상품 상세 조회용 (최적화 버전 - prefetch 전제)
+    상품 상세 조회용 (최적화 버전)
+    주의: ViewSet에서 annotate(review_count=Count('reviews'), average_rating=Avg('reviews__rating')) 필요
     """
-    review_count = serializers.SerializerMethodField()
-    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Product
         fields = '__all__'
-
-    def get_review_count(self, obj):
-        # prefetch_related('reviews')가 호출된 상태를 가정
-        return len(obj.reviews.all())
-
-    def get_average_rating(self, obj):
-        reviews = obj.reviews.all()
-        if reviews:
-            return sum(r.rating for r in reviews) / len(reviews)
-        return None
 
 
 # ============= Review Serializers =============
@@ -69,7 +52,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ReviewListSerializer(serializers.ModelSerializer):
     """
-    리뷰 목록용 (상품명 포함, N+1 발생 가능)
+    리뷰 목록용 (상품명 포함)
+    주의: ViewSet에서 select_related('product') 필요
     """
     product_name = serializers.CharField(source='product.name', read_only=True)
 
@@ -78,15 +62,8 @@ class ReviewListSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'product_name', 'user_id', 'rating', 'body', 'created_at']
 
 
-class ReviewListOptimizedSerializer(serializers.ModelSerializer):
-    """
-    리뷰 목록용 (최적화, select_related 전제)
-    """
-    product_name = serializers.CharField(source='product.name', read_only=True)
-
-    class Meta:
-        model = Review
-        fields = ['id', 'product', 'product_name', 'user_id', 'rating', 'body', 'created_at']
+# 하위 호환성을 위해 유지 (실제로는 ReviewListSerializer와 동일)
+ReviewListOptimizedSerializer = ReviewListSerializer
 
 
 # ============= OrderItem Serializers =============
@@ -105,6 +82,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderItemDetailSerializer(serializers.ModelSerializer):
     """
     주문 아이템 (상품 정보 포함)
+    주의: ViewSet에서 select_related('product') 또는 prefetch_related('items__product') 필요
     """
     product_name = serializers.CharField(source='product.name', read_only=True)
     subtotal = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
