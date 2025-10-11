@@ -1,5 +1,3 @@
-version: "3.8"
-
 networks:
   monitoring:
     driver: bridge
@@ -8,6 +6,7 @@ services:
   victoriametrics:
     image: victoriametrics/victoria-metrics:v1.127.0
     container_name: victoriametrics
+    user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     command:
       - "--storageDataPath=/storage"
       - "--graphiteListenAddr=:2003"
@@ -86,6 +85,7 @@ services:
   loki:
     image: grafana/loki:3.4.1
     container_name: loki
+    user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     command: ["-config.file=/etc/loki/loki-config.yaml"]
     user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     ports:
