@@ -6,14 +6,13 @@ import { check, sleep } from 'k6';
 import { Rate } from 'k6/metrics';
 
 const errorRate = new Rate('errors');
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:9000/api';
+const BASE_URL = __ENV.BASE_URL ? `${__ENV.BASE_URL}/api` : 'http://localhost:9000/api';
 
 export const options = {
   stages: [
-    { duration: '30s', target: 50 },   // 워밍업
-    { duration: '1m', target: 100 },   // 부하 증가
-    { duration: '2m', target: 100 },   // 안정 상태
-    { duration: '30s', target: 0 },    // 감소
+    { duration: '10s', target: 500 },   // 빠른 램프업
+    { duration: '2m', target: 500 },    // 안정 상태
+    { duration: '30s', target: 0 },     // 감소
   ],
   thresholds: {
     http_req_duration: ['p(95)<500', 'p(99)<1000'],
