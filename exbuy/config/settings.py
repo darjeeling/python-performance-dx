@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_prometheus',
     # Local apps
-    'shop.apps.ShopConfig',
+    'shop',
 ]
 
 MIDDLEWARE = [

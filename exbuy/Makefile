@@ -2,10 +2,10 @@
 
 # 기본 설정
 SERVER ?= gunicorn-sync
-PORT_8000 = http://localhost:8000
-PORT_8001 = http://localhost:8001
-PORT_8002 = http://localhost:8002
-PORT_8003 = http://localhost:8003
+PORT_9000 = http://localhost:9000
+PORT_9001 = http://localhost:9001
+PORT_9002 = http://localhost:9002
+PORT_9003 = http://localhost:9003
 
 help: ## 도움말 표시
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -70,7 +70,7 @@ reset: ## 데이터 초기화
 test-read-heavy: ## 읽기 중심 테스트
 	@mkdir -p results
 	@mkdir -p ../monitoring/k6/logs
-	BASE_URL=$(PORT_8000) k6 run \
+	BASE_URL=$(PORT_9000) k6 run \
 		--out json=results/$(SERVER)-read-heavy.json \
 		--out influxdb=http://localhost:8089/exbuy \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-read-heavy.log \
@@ -79,7 +79,7 @@ test-read-heavy: ## 읽기 중심 테스트
 test-write-heavy: ## 쓰기 중심 테스트
 	@mkdir -p results
 	@mkdir -p ../monitoring/k6/logs
-	BASE_URL=$(PORT_8000) k6 run \
+	BASE_URL=$(PORT_9000) k6 run \
 		--out json=results/$(SERVER)-write-heavy.json \
 		--out influxdb=http://localhost:8089/exbuy \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-write-heavy.log \
@@ -88,7 +88,7 @@ test-write-heavy: ## 쓰기 중심 테스트
 test-mixed: ## 혼합 테스트
 	@mkdir -p results
 	@mkdir -p ../monitoring/k6/logs
-	BASE_URL=$(PORT_8000) k6 run \
+	BASE_URL=$(PORT_9000) k6 run \
 		--out json=results/$(SERVER)-mixed.json \
 		--out influxdb=http://localhost:8089/exbuy \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-mixed.log \
@@ -98,38 +98,38 @@ test-mixed: ## 혼합 테스트
 test-gunicorn-sync: ## Gunicorn sync 전체 테스트
 	@echo "=== Gunicorn sync 테스트 ==="
 	@make warmup
-	@make test-read-heavy SERVER=gunicorn-sync PORT_8000=http://localhost:8000
+	@make test-read-heavy SERVER=gunicorn-sync PORT_9000=http://localhost:9000
 	@sleep 10
-	@make test-write-heavy SERVER=gunicorn-sync PORT_8000=http://localhost:8000
+	@make test-write-heavy SERVER=gunicorn-sync PORT_9000=http://localhost:9000
 	@sleep 10
-	@make test-mixed SERVER=gunicorn-sync PORT_8000=http://localhost:8000
+	@make test-mixed SERVER=gunicorn-sync PORT_9000=http://localhost:9000
 
 test-gunicorn-gevent: ## Gunicorn gevent 전체 테스트
 	@echo "=== Gunicorn gevent 테스트 ==="
 	@make warmup
-	@make test-read-heavy SERVER=gunicorn-gevent PORT_8000=http://localhost:8001
+	@make test-read-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 	@sleep 10
-	@make test-write-heavy SERVER=gunicorn-gevent PORT_8000=http://localhost:8001
+	@make test-write-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 	@sleep 10
-	@make test-mixed SERVER=gunicorn-gevent PORT_8000=http://localhost:8001
+	@make test-mixed SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 
 test-gunicorn-gthread: ## Gunicorn gthread 전체 테스트
 	@echo "=== Gunicorn gthread 테스트 ==="
 	@make warmup
-	@make test-read-heavy SERVER=gunicorn-gthread PORT_8000=http://localhost:8002
+	@make test-read-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 	@sleep 10
-	@make test-write-heavy SERVER=gunicorn-gthread PORT_8000=http://localhost:8002
+	@make test-write-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 	@sleep 10
-	@make test-mixed SERVER=gunicorn-gthread PORT_8000=http://localhost:8002
+	@make test-mixed SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 
 test-uvicorn: ## Uvicorn 전체 테스트
 	@echo "=== Uvicorn 테스트 ==="
 	@make warmup
-	@make test-read-heavy SERVER=uvicorn PORT_8000=http://localhost:8003
+	@make test-read-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
 	@sleep 10
-	@make test-write-heavy SERVER=uvicorn PORT_8000=http://localhost:8003
+	@make test-write-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
 	@sleep 10
-	@make test-mixed SERVER=uvicorn PORT_8000=http://localhost:8003
+	@make test-mixed SERVER=uvicorn PORT_9000=http://localhost:9003
 
 test-all: ## 모든 서버 비교 테스트
 	@echo "=== 전체 서버 비교 테스트 시작 ==="
@@ -170,10 +170,10 @@ dbshell: ## DB shell 접속
 
 check-health: ## 헬스 체크
 	@echo "서버 상태 확인:"
-	@curl -s http://localhost:8000/api/health 2>/dev/null && echo "✓ Gunicorn sync (8000)" || echo "✗ Gunicorn sync (8000)"
-	@curl -s http://localhost:8001/api/health 2>/dev/null && echo "✓ Gunicorn gevent (8001)" || echo "✗ Gunicorn gevent (8001)"
-	@curl -s http://localhost:8002/api/health 2>/dev/null && echo "✓ Gunicorn gthread (8002)" || echo "✗ Gunicorn gthread (8002)"
-	@curl -s http://localhost:8003/api/health 2>/dev/null && echo "✓ Uvicorn (8003)" || echo "✗ Uvicorn (8003)"
+	@curl -s http://localhost:9000/api/health 2>/dev/null && echo "✓ Gunicorn sync (9000)" || echo "✗ Gunicorn sync (9000)"
+	@curl -s http://localhost:9001/api/health 2>/dev/null && echo "✓ Gunicorn gevent (9001)" || echo "✗ Gunicorn gevent (9001)"
+	@curl -s http://localhost:9002/api/health 2>/dev/null && echo "✓ Gunicorn gthread (9002)" || echo "✗ Gunicorn gthread (9002)"
+	@curl -s http://localhost:9003/api/health 2>/dev/null && echo "✓ Uvicorn (9003)" || echo "✗ Uvicorn (9003)"
 
 stats: ## Docker 리소스 사용량
 	docker stats --no-stream
