@@ -77,7 +77,7 @@ test-read-heavy: ## 읽기 중심 테스트
 	@mkdir -p ../monitoring/k6/logs
 	BASE_URL=$(PORT_9000) k6 run \
 		--out json=results/$(SERVER)-read-heavy.json \
-		--out influxdb=http://localhost:8089/exbuy \
+		--out experimental-prometheus-rw=http://localhost:8428/api/v1/write \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-read-heavy.log \
 		k6-scripts/read-heavy.js
 
@@ -86,7 +86,7 @@ test-write-heavy: ## 쓰기 중심 테스트
 	@mkdir -p ../monitoring/k6/logs
 	BASE_URL=$(PORT_9000) k6 run \
 		--out json=results/$(SERVER)-write-heavy.json \
-		--out influxdb=http://localhost:8089/exbuy \
+		--out experimental-prometheus-rw=http://localhost:8428/api/v1/write \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-write-heavy.log \
 		k6-scripts/write-heavy.js
 
@@ -95,7 +95,7 @@ test-mixed: ## 혼합 테스트
 	@mkdir -p ../monitoring/k6/logs
 	BASE_URL=$(PORT_9000) k6 run \
 		--out json=results/$(SERVER)-mixed.json \
-		--out influxdb=http://localhost:8089/exbuy \
+		--out experimental-prometheus-rw=http://localhost:8428/api/v1/write \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-mixed.log \
 		k6-scripts/mixed.js
 
