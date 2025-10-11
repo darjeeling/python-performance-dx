@@ -63,6 +63,7 @@ services:
   grafana:
     image: grafana/grafana:12.2.0
     container_name: grafana
+    user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     depends_on:
       - victoriametrics
       - loki
@@ -106,6 +107,7 @@ services:
   promtail:
     image: grafana/promtail:3.4.1
     container_name: promtail
+    user: "${UID}:${GID}"  # ← 현재 유저/그룹 ID 로 실행
     depends_on:
       - loki
     command: ["-config.file=/etc/promtail/promtail-config.yaml"]
