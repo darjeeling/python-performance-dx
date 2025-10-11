@@ -102,39 +102,39 @@ test-mixed: ## 혼합 테스트
 # 서버별 전체 테스트
 test-gunicorn-sync: ## Gunicorn sync 전체 테스트
 	@echo "=== Gunicorn sync 테스트 ==="
-	@make warmup
-	@make test-read-heavy SERVER=gunicorn-sync PORT_9000=http://localhost:9000
+	-@make warmup
+	-@make test-read-heavy SERVER=gunicorn-sync PORT_9000=http://localhost:9000
 	@sleep 10
-	@make test-write-heavy SERVER=gunicorn-sync PORT_9000=http://localhost:9000
+	-@make test-write-heavy SERVER=gunicorn-sync PORT_9000=http://localhost:9000
 	@sleep 10
-	@make test-mixed SERVER=gunicorn-sync PORT_9000=http://localhost:9000
+	-@make test-mixed SERVER=gunicorn-sync PORT_9000=http://localhost:9000
 
 test-gunicorn-gevent: ## Gunicorn gevent 전체 테스트
 	@echo "=== Gunicorn gevent 테스트 ==="
-	@make warmup BASE_URL=http://localhost:9001
-	@make test-read-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
+	-@make warmup BASE_URL=http://localhost:9001
+	-@make test-read-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 	@sleep 10
-	@make test-write-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
+	-@make test-write-heavy SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 	@sleep 10
-	@make test-mixed SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
+	-@make test-mixed SERVER=gunicorn-gevent PORT_9000=http://localhost:9001
 
 test-gunicorn-gthread: ## Gunicorn gthread 전체 테스트
 	@echo "=== Gunicorn gthread 테스트 ==="
-	@make warmup BASE_URL=http://localhost:9002
-	@make test-read-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
+	-@make warmup BASE_URL=http://localhost:9002
+	-@make test-read-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 	@sleep 10
-	@make test-write-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
+	-@make test-write-heavy SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 	@sleep 10
-	@make test-mixed SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
+	-@make test-mixed SERVER=gunicorn-gthread PORT_9000=http://localhost:9002
 
 test-uvicorn: ## Uvicorn 전체 테스트
 	@echo "=== Uvicorn 테스트 ==="
-	@make warmup BASE_URL=http://localhost:9003
-	@make test-read-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
+	-@make warmup BASE_URL=http://localhost:9003
+	-@make test-read-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
 	@sleep 10
-	@make test-write-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
+	-@make test-write-heavy SERVER=uvicorn PORT_9000=http://localhost:9003
 	@sleep 10
-	@make test-mixed SERVER=uvicorn PORT_9000=http://localhost:9003
+	-@make test-mixed SERVER=uvicorn PORT_9000=http://localhost:9003
 
 test-all: ## 모든 서버 비교 테스트
 	@echo "=== 전체 서버 비교 테스트 시작 ==="
