@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+echo "Waiting for PostgreSQL..."
+while ! pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER"; do
+  sleep 1
+done
+
+echo "PostgreSQL is ready!"
+
+# 마이그레이션 실행
+python manage.py migrate --noinput
+
+# 서버 타입에 따라 실행 (기본: gunicorn)
+SERVER_TYPE=${SERVER_TYPE:-gunicorn}
+
+if [ "$SERVER_TYPE" = "uvicorn" ]; then
+    echo "Starting with Uvicorn (ASGI)..."
+    exec uvicorn config.asgi:application \
+        --host 0.0.0.0 \
+        --port 8000 \
+        --workers ${WORKERS:-4} \
+        --log-level ${LOG_LEVEL:-info}
+else
+    echo "Starting with Gunicorn (WSGI)..."
+    exec gunicorn config.wsgi:application \
+        --bind 0.0.0.0:8000 \
+        --workers ${WORKERS:-4} \
+        --worker-class ${WORKER_CLASS:-sync} \
+        --timeout ${TIMEOUT:-120} \
+        --access-logfile - \
+        --error-logfile - \
+        --log-level ${LOG_LEVEL:-info}
+fi
