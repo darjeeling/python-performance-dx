@@ -20,11 +20,14 @@ python manage.py migrate --noinput
 SERVER_TYPE=${SERVER_TYPE:-gunicorn}
 
 if [ "$SERVER_TYPE" = "uvicorn" ]; then
-    echo "Starting with Uvicorn (ASGI)..."
-    exec uvicorn config.asgi:application \
-        --host 0.0.0.0 \
-        --port 8000 \
+    echo "Starting with Gunicorn + UvicornWorker (ASGI)..."
+    exec gunicorn config.asgi:application \
+        --bind 0.0.0.0:8000 \
         --workers ${WORKERS:-4} \
+        --worker-class uvicorn.workers.UvicornWorker \
+        --timeout ${TIMEOUT:-120} \
+        --access-logfile - \
+        --error-logfile - \
         --log-level ${LOG_LEVEL:-info}
 else
     echo "Starting with Gunicorn (WSGI)..."
