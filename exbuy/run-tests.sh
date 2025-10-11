@@ -38,7 +38,7 @@ sleep 5
 
 # 3. 서비스 상태 확인
 echo -e "${BLUE}3. Checking services...${NC}"
-check_service "http://localhost:8000/api/health" "ExBuy API"
+check_service "http://localhost:9000/api/health" "ExBuy API"
 echo ""
 
 # 4. 데이터 시딩 여부 확인
@@ -66,25 +66,28 @@ read -p "Enter choice (1-5): " choice
 
 mkdir -p ../monitoring/k6/logs
 
+# k6 Prometheus Remote Write 설정
+export K6_PROMETHEUS_RW_SERVER_URL=http://localhost:8428/api/v1/write
+
 case $choice in
     1)
         echo -e "${BLUE}Running read-heavy scenario...${NC}"
         k6 run \
-            --out influxdb=http://localhost:8089/exbuy \
+            --out experimental-prometheus-rw \
             --log-output=file=../monitoring/k6/logs/read-heavy.log \
             k6-scripts/read-heavy.js
         ;;
     2)
         echo -e "${BLUE}Running write-heavy scenario...${NC}"
         k6 run \
-            --out influxdb=http://localhost:8089/exbuy \
+            --out experimental-prometheus-rw \
             --log-output=file=../monitoring/k6/logs/write-heavy.log \
             k6-scripts/write-heavy.js
         ;;
     3)
         echo -e "${BLUE}Running mixed scenario...${NC}"
         k6 run \
-            --out influxdb=http://localhost:8089/exbuy \
+            --out experimental-prometheus-rw \
             --log-output=file=../monitoring/k6/logs/mixed.log \
             k6-scripts/mixed.js
         ;;
@@ -92,17 +95,17 @@ case $choice in
         echo -e "${BLUE}Running all scenarios...${NC}"
         echo -e "\n${YELLOW}=== Read-Heavy ===${NC}"
         k6 run \
-            --out influxdb=http://localhost:8089/exbuy \
+            --out experimental-prometheus-rw \
             --log-output=file=../monitoring/k6/logs/all-read-heavy.log \
             k6-scripts/read-heavy.js
         echo -e "\n${YELLOW}=== Write-Heavy ===${NC}"
         k6 run \
-            --out influxdb=http://localhost:8089/exbuy \
+            --out experimental-prometheus-rw \
             --log-output=file=../monitoring/k6/logs/all-write-heavy.log \
             k6-scripts/write-heavy.js
         echo -e "\n${YELLOW}=== Mixed ===${NC}"
         k6 run \
-            --out influxdb=http://localhost:8089/exbuy \
+            --out experimental-prometheus-rw \
             --log-output=file=../monitoring/k6/logs/all-mixed.log \
             k6-scripts/mixed.js
         ;;
@@ -122,6 +125,6 @@ echo ""
 echo "Useful commands:"
 echo "  - View logs: docker compose logs -f web"
 echo "  - Stop services: docker compose down"
-echo "  - View metrics: curl http://localhost:8000/metrics"
-echo "  - Django admin: http://localhost:8000/admin"
+echo "  - View metrics: curl http://localhost:9000/metrics"
+echo "  - Django admin: http://localhost:9000/admin"
 echo ""

@@ -92,25 +92,25 @@ docker compose run --rm web-gunicorn-sync python manage.py seed_data \
 #### Gunicorn - sync worker
 ```bash
 docker compose --profile gunicorn-sync up -d
-# 포트: 8000
+# 포트: 9000
 ```
 
 #### Gunicorn - gevent worker
 ```bash
 docker compose --profile gunicorn-gevent up -d
-# 포트: 8001
+# 포트: 9001
 ```
 
 #### Gunicorn - gthread worker
 ```bash
 docker compose --profile gunicorn-gthread up -d
-# 포트: 8002
+# 포트: 9002
 ```
 
 #### Uvicorn (ASGI)
 ```bash
 docker compose --profile uvicorn up -d
-# 포트: 8003
+# 포트: 9003
 ```
 
 #### 모든 서버 동시 실행 (비교 테스트)
@@ -127,7 +127,7 @@ docker compose ps
 docker compose logs -f web-gunicorn-sync
 
 # 헬스체크
-curl http://localhost:8000/api/health
+curl http://localhost:9000/api/health
 ```
 
 ## 4단계: 부하 테스트 실행
@@ -143,29 +143,29 @@ curl http://localhost:8000/api/health
 #### 읽기 중심 테스트 (80% 읽기, 20% 쓰기)
 ```bash
 # Gunicorn sync
-BASE_URL=http://localhost:8000 k6 run k6-scripts/read-heavy.js
+BASE_URL=http://localhost:9000 k6 run k6-scripts/read-heavy.js
 
 # Uvicorn
-BASE_URL=http://localhost:8003 k6 run k6-scripts/read-heavy.js
+BASE_URL=http://localhost:9003 k6 run k6-scripts/read-heavy.js
 ```
 
 #### 쓰기 중심 테스트 (30% 읽기, 70% 쓰기)
 ```bash
-BASE_URL=http://localhost:8000 k6 run k6-scripts/write-heavy.js
+BASE_URL=http://localhost:9000 k6 run k6-scripts/write-heavy.js
 ```
 
 #### 혼합 테스트 (60% 읽기, 40% 쓰기)
 ```bash
-BASE_URL=http://localhost:8000 k6 run k6-scripts/mixed.js
+BASE_URL=http://localhost:9000 k6 run k6-scripts/mixed.js
 ```
 
 ### 4.3 결과 저장
 ```bash
 # JSON 형식으로 저장
-BASE_URL=http://localhost:8000 k6 run --out json=results/gunicorn-sync-read.json k6-scripts/read-heavy.js
+BASE_URL=http://localhost:9000 k6 run --out json=results/gunicorn-sync-read.json k6-scripts/read-heavy.js
 
 # HTML 리포트 생성 (k6-reporter 필요)
-BASE_URL=http://localhost:8000 k6 run --out json=results/test.json k6-scripts/mixed.js
+BASE_URL=http://localhost:9000 k6 run --out json=results/test.json k6-scripts/mixed.js
 ```
 
 ### 4.4 Makefile을 사용한 자동화
@@ -199,7 +199,7 @@ make test-all
 ### 5.2 Prometheus 메트릭 확인
 ```bash
 # Django 메트릭 확인
-curl http://localhost:8000/metrics
+curl http://localhost:9000/metrics
 
 # 주요 메트릭
 # - django_http_requests_latency_seconds
@@ -270,7 +270,7 @@ docker system prune -a
 ### 포트 충돌
 ```bash
 # 포트 사용 확인
-sudo netstat -tlnp | grep :8000
+sudo netstat -tlnp | grep :9000
 
 # docker-compose.yml에서 포트 변경
 ```
