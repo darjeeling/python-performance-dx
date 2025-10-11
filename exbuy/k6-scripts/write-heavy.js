@@ -7,15 +7,16 @@ import { Rate } from 'k6/metrics';
 
 const errorRate = new Rate('errors');
 const BASE_URL = __ENV.BASE_URL ? `${__ENV.BASE_URL}/api` : 'http://localhost:9000/api';
+const MAX_VU = parseInt(__ENV.MAX_VU || '200');
 
 export const options = {
   stages: [
-    { duration: '10s', target: 500 },   // 빠른 램프업
-    { duration: '2m', target: 500 },    // 안정 상태
+    { duration: '10s', target: MAX_VU },   // 빠른 램프업
+    { duration: '2m', target: MAX_VU },    // 안정 상태
     { duration: '30s', target: 0 },     // 감소
   ],
   thresholds: {
-    http_req_duration: ['p(95)<1000', 'p(99)<2000'],
+    http_req_duration: ['p(95)<800', 'p(99)<1500'],
     http_req_failed: ['rate<0.15'],
     errors: ['rate<0.15'],
   },
