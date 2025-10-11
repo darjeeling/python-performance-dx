@@ -75,27 +75,36 @@ reset: ## 데이터 초기화
 test-read-heavy: ## 읽기 중심 테스트
 	@mkdir -p results
 	@mkdir -p ../monitoring/k6/logs
+	K6_PROMETHEUS_RW_SERVER_URL=http://localhost:8428/api/v1/write \
 	BASE_URL=$(PORT_9000) k6 run \
+		--tag server_type=$(SERVER) \
+		--tag scenario=read-heavy \
 		--out json=results/$(SERVER)-read-heavy.json \
-		--out experimental-prometheus-rw=http://localhost:8428/api/v1/write \
+		--out experimental-prometheus-rw \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-read-heavy.log \
 		k6-scripts/read-heavy.js
 
 test-write-heavy: ## 쓰기 중심 테스트
 	@mkdir -p results
 	@mkdir -p ../monitoring/k6/logs
+	K6_PROMETHEUS_RW_SERVER_URL=http://localhost:8428/api/v1/write \
 	BASE_URL=$(PORT_9000) k6 run \
+		--tag server_type=$(SERVER) \
+		--tag scenario=write-heavy \
 		--out json=results/$(SERVER)-write-heavy.json \
-		--out experimental-prometheus-rw=http://localhost:8428/api/v1/write \
+		--out experimental-prometheus-rw \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-write-heavy.log \
 		k6-scripts/write-heavy.js
 
 test-mixed: ## 혼합 테스트
 	@mkdir -p results
 	@mkdir -p ../monitoring/k6/logs
+	K6_PROMETHEUS_RW_SERVER_URL=http://localhost:8428/api/v1/write \
 	BASE_URL=$(PORT_9000) k6 run \
+		--tag server_type=$(SERVER) \
+		--tag scenario=mixed \
 		--out json=results/$(SERVER)-mixed.json \
-		--out experimental-prometheus-rw=http://localhost:8428/api/v1/write \
+		--out experimental-prometheus-rw \
 		--log-output=file=../monitoring/k6/logs/$(SERVER)-mixed.log \
 		k6-scripts/mixed.js
 
