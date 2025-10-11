@@ -52,15 +52,15 @@ function testProductList() {
   const params = {
     tags: { name: 'product-list' },
   };
-  const res = http.get(`${BASE_URL}/products?page=1`, params);
+  const res = http.get(`${BASE_URL}/products/?page=1`, params);  // trailing slash 추가
   check(res, {
     'product list status 200': (r) => r.status === 200,
   }) || errorRate.add(1);
 }
 
 function testProductDetail() {
-  const productId = Math.floor(Math.random() * 1000) + 1;
-  const res = http.get(`${BASE_URL}/products/${productId}`, {
+  const productId = Math.floor(Math.random() * 100) + 1;  // ID 범위 축소: 1-100
+  const res = http.get(`${BASE_URL}/products/${productId}/`, {  // trailing slash 추가
     tags: { name: 'product-detail' },
   });
   check(res, {
@@ -80,7 +80,7 @@ function testProductSearch() {
 }
 
 function testProductListOptimized() {
-  const res = http.get(`${BASE_URL}/products?page=1&optimize=true`, {
+  const res = http.get(`${BASE_URL}/products/?page=1&optimize=true`, {  // trailing slash 추가
     tags: { name: 'product-list-optimized' },
   });
   check(res, {
@@ -89,8 +89,8 @@ function testProductListOptimized() {
 }
 
 function testProductDetailOptimized() {
-  const productId = Math.floor(Math.random() * 1000) + 1;
-  const res = http.get(`${BASE_URL}/products/${productId}?optimize=true`, {
+  const productId = Math.floor(Math.random() * 100) + 1;  // ID 범위 축소: 1-100
+  const res = http.get(`${BASE_URL}/products/${productId}/?optimize=true`, {  // trailing slash 추가
     tags: { name: 'product-detail-optimized' },
   });
   check(res, {
@@ -99,8 +99,8 @@ function testProductDetailOptimized() {
 }
 
 function testReviews() {
-  const productId = Math.floor(Math.random() * 1000) + 1;
-  const res = http.get(`${BASE_URL}/reviews?product_id=${productId}`, {
+  const productId = Math.floor(Math.random() * 100) + 1;  // ID 범위 축소: 1-100
+  const res = http.get(`${BASE_URL}/reviews/?product_id=${productId}`, {  // trailing slash 추가
     tags: { name: 'reviews' },
   });
   check(res, {

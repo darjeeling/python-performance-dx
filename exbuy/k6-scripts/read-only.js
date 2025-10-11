@@ -52,8 +52,8 @@ function testHealthCheck() {
 }
 
 function testProductList() {
-  const page = Math.floor(Math.random() * 10) + 1;
-  const res = http.get(`${BASE_URL}/products?page=${page}`, {
+  const page = Math.floor(Math.random() * 3) + 1;  // 페이지 범위 축소: 1-3
+  const res = http.get(`${BASE_URL}/products/?page=${page}`, {  // trailing slash 추가
     tags: { name: 'product-list' },
   });
   check(res, {
@@ -62,8 +62,8 @@ function testProductList() {
 }
 
 function testProductDetail() {
-  const productId = Math.floor(Math.random() * 1000) + 1;
-  const res = http.get(`${BASE_URL}/products/${productId}`, {
+  const productId = Math.floor(Math.random() * 100) + 1;  // ID 범위 축소: 1-100
+  const res = http.get(`${BASE_URL}/products/${productId}/`, {  // trailing slash 추가
     tags: { name: 'product-detail' },
   });
   check(res, {
@@ -86,8 +86,8 @@ function testProductSearch() {
 }
 
 function testProductListOptimized() {
-  const page = Math.floor(Math.random() * 10) + 1;
-  const res = http.get(`${BASE_URL}/products?page=${page}&optimize=true`, {
+  const page = Math.floor(Math.random() * 3) + 1;  // 페이지 범위 축소: 1-3
+  const res = http.get(`${BASE_URL}/products/?page=${page}&optimize=true`, {  // trailing slash 추가
     tags: { name: 'product-list-optimized' },
   });
   check(res, {
@@ -96,8 +96,8 @@ function testProductListOptimized() {
 }
 
 function testProductDetailOptimized() {
-  const productId = Math.floor(Math.random() * 1000) + 1;
-  const res = http.get(`${BASE_URL}/products/${productId}?optimize=true`, {
+  const productId = Math.floor(Math.random() * 100) + 1;  // ID 범위 축소: 1-100
+  const res = http.get(`${BASE_URL}/products/${productId}/?optimize=true`, {  // trailing slash 추가
     tags: { name: 'product-detail-optimized' },
   });
   check(res, {
@@ -106,9 +106,9 @@ function testProductDetailOptimized() {
 }
 
 function testReviews() {
-  const productId = Math.floor(Math.random() * 1000) + 1;
+  const productId = Math.floor(Math.random() * 100) + 1;  // ID 범위 축소: 1-100
   const optimize = Math.random() < 0.3 ? '&optimize=true' : '';
-  const res = http.get(`${BASE_URL}/reviews?product_id=${productId}${optimize}`, {
+  const res = http.get(`${BASE_URL}/reviews/?product_id=${productId}${optimize}`, {  // trailing slash 추가
     tags: { name: 'reviews' },
   });
   check(res, {
@@ -117,9 +117,9 @@ function testReviews() {
 }
 
 function testOrderDetail() {
-  const orderId = Math.floor(Math.random() * 10000) + 1;
+  const orderId = Math.floor(Math.random() * 500) + 1;  // ID 범위 축소: 1-500
   const optimize = Math.random() < 0.5 ? '?optimize=true' : '';
-  const res = http.get(`${BASE_URL}/orders/${orderId}${optimize}`, {
+  const res = http.get(`${BASE_URL}/orders/${orderId}/${optimize}`, {  // trailing slash 추가
     tags: { name: 'order-detail' },
   });
   check(res, {

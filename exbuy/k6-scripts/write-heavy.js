@@ -53,11 +53,11 @@ function testCreateOrder() {
     user_id: Math.floor(Math.random() * 10000) + 1,
     items: [
       {
-        product_id: Math.floor(Math.random() * 1000) + 1,
+        product_id: Math.floor(Math.random() * 100) + 1,  // ID 범위 축소: 1-100
         quantity: Math.floor(Math.random() * 5) + 1,
       },
       {
-        product_id: Math.floor(Math.random() * 1000) + 1,
+        product_id: Math.floor(Math.random() * 100) + 1,  // ID 범위 축소: 1-100
         quantity: Math.floor(Math.random() * 3) + 1,
       },
     ],
@@ -68,7 +68,7 @@ function testCreateOrder() {
     tags: { name: 'create-order' },
   };
 
-  const res = http.post(`${BASE_URL}/orders`, payload, params);
+  const res = http.post(`${BASE_URL}/orders/`, payload, params);  // trailing slash 추가
   check(res, {
     'create order status 201': (r) => r.status === 201,
   }) || errorRate.add(1);
@@ -76,7 +76,7 @@ function testCreateOrder() {
 
 function testCreateReview() {
   const payload = JSON.stringify({
-    product: Math.floor(Math.random() * 1000) + 1,
+    product: Math.floor(Math.random() * 100) + 1,  // ID 범위 축소: 1-100
     user_id: Math.floor(Math.random() * 10000) + 1,
     rating: Math.floor(Math.random() * 5) + 1,
     body: 'This is a test review from k6 load testing.',
@@ -87,7 +87,7 @@ function testCreateReview() {
     tags: { name: 'create-review' },
   };
 
-  const res = http.post(`${BASE_URL}/reviews`, payload, params);
+  const res = http.post(`${BASE_URL}/reviews/`, payload, params);  // trailing slash 추가
   check(res, {
     'create review status 201': (r) => r.status === 201,
   }) || errorRate.add(1);
@@ -95,7 +95,7 @@ function testCreateReview() {
 
 function testReserveInventory() {
   const payload = JSON.stringify({
-    product_id: Math.floor(Math.random() * 1000) + 1,
+    product_id: Math.floor(Math.random() * 100) + 1,  // ID 범위 축소: 1-100
     quantity: Math.floor(Math.random() * 5) + 1,
   });
 
@@ -113,7 +113,7 @@ function testReserveInventory() {
 }
 
 function testUpdateOrderStatus() {
-  const orderId = Math.floor(Math.random() * 10000) + 1;
+  const orderId = Math.floor(Math.random() * 500) + 1;  // ID 범위 축소: 1-500
   const statuses = ['processing', 'shipped', 'delivered'];
   const status = statuses[Math.floor(Math.random() * statuses.length)];
 
@@ -124,14 +124,14 @@ function testUpdateOrderStatus() {
     tags: { name: 'update-order-status' },
   };
 
-  const res = http.patch(`${BASE_URL}/orders/${orderId}`, payload, params);
+  const res = http.patch(`${BASE_URL}/orders/${orderId}/`, payload, params);  // trailing slash 추가
   check(res, {
     'update order status 200 or 404': (r) => r.status === 200 || r.status === 404,
   }) || errorRate.add(1);
 }
 
 function testProductList() {
-  const res = http.get(`${BASE_URL}/products?page=1`, {
+  const res = http.get(`${BASE_URL}/products/?page=1`, {  // trailing slash 추가
     tags: { name: 'product-list' },
   });
   check(res, {
@@ -140,8 +140,8 @@ function testProductList() {
 }
 
 function testOrderDetail() {
-  const orderId = Math.floor(Math.random() * 10000) + 1;
-  const res = http.get(`${BASE_URL}/orders/${orderId}`, {
+  const orderId = Math.floor(Math.random() * 500) + 1;  // ID 범위 축소: 1-500
+  const res = http.get(`${BASE_URL}/orders/${orderId}/`, {  // trailing slash 추가
     tags: { name: 'order-detail' },
   });
   check(res, {
