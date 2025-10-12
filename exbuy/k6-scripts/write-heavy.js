@@ -3,24 +3,50 @@
 
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { Rate } from 'k6/metrics';
+import { Rate, Counter } from 'k6/metrics';
 
 const errorRate = new Rate('errors');
+const testMarker = new Counter('test_execution_marker');
+
 const BASE_URL = __ENV.BASE_URL ? `${__ENV.BASE_URL}/api` : 'http://localhost:9000/api';
 const MAX_VU = parseInt(__ENV.MAX_VU || '200');
+const DURATION = __ENV.DURATION || '2m';
+const RAMP_UP = __ENV.RAMP_UP || '10s';
+const RAMP_DOWN = __ENV.RAMP_DOWN || '30s';
+const SERVER_TYPE = __ENV.SERVER_TYPE || 'unknown';
+const SCENARIO_NAME = 'write-heavy';
 
 export const options = {
   stages: [
-    { duration: '10s', target: MAX_VU },   // 빠른 램프업
-    { duration: '2m', target: MAX_VU },    // 안정 상태
-    { duration: '30s', target: 0 },     // 감소
+    { duration: RAMP_UP, target: MAX_VU },
+    { duration: DURATION, target: MAX_VU },
+    { duration: RAMP_DOWN, target: 0 },
   ],
   thresholds: {
     http_req_duration: ['p(95)<800', 'p(99)<1500'],
     http_req_failed: ['rate<0.15'],
     errors: ['rate<0.15'],
   },
+  tags: {
+    scenario: SCENARIO_NAME,
+    server_type: SERVER_TYPE,
+  },
 };
+
+// 테스트 시작 시 실행 (1회만)
+export function setup() {
+  const startTime = new Date().toISOString();
+  console.log(`[TEST START] ${startTime} - Server: ${SERVER_TYPE}, Scenario: ${SCENARIO_NAME}, VU: ${MAX_VU}`);
+  testMarker.add(1, { event: 'start', server: SERVER_TYPE, scenario: SCENARIO_NAME });
+  return { startTime, server: SERVER_TYPE, scenario: SCENARIO_NAME, maxVU: MAX_VU };
+}
+
+// 테스트 종료 시 실행 (1회만)
+export function teardown(data) {
+  const endTime = new Date().toISOString();
+  console.log(`[TEST END] ${endTime} - Server: ${data.server}, Scenario: ${data.scenario}`);
+  testMarker.add(1, { event: 'end', server: data.server, scenario: data.scenario });
+}
 
 export default function () {
   const rand = Math.random();

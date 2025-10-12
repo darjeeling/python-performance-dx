@@ -43,7 +43,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - SERVER_TYPE=gunicorn
-      - WORKERS=4
+      - WORKERS=${WORKERS:-4}
       - WORKER_CLASS=sync
       - TIMEOUT=120
       - LOG_LEVEL=INFO
@@ -76,7 +76,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - SERVER_TYPE=gunicorn
-      - WORKERS=4
+      - WORKERS=${WORKERS:-4}
       - WORKER_CLASS=gevent
       - TIMEOUT=120
       - LOG_LEVEL=INFO
@@ -109,7 +109,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - SERVER_TYPE=gunicorn
-      - WORKERS=4
+      - WORKERS=${WORKERS:-4}
       - WORKER_CLASS=gthread
       - TIMEOUT=120
       - LOG_LEVEL=INFO
@@ -142,7 +142,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - SERVER_TYPE=uvicorn
-      - WORKERS=4
+      - WORKERS=${WORKERS:-4}
       - LOG_LEVEL=INFO
     ports:
       - "9003:8000"
