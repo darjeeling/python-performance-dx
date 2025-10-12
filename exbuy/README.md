@@ -151,34 +151,55 @@ GET /api/reviews?product_id=1&optimize=true
 
 ## 빠른 시작
 
-### 1. Docker Compose로 실행
+### 1. Makefile을 사용한 자동 설정 (추천)
+
+```bash
+cd exbuy
+
+# 전체 자동 설정 (빌드 → DB 시작 → 마이그레이션 → 시딩 → 서버 시작)
+make quickstart
+
+# 개별 명령어
+make build              # 이미지 빌드
+make up                 # DB 시작
+make migrate            # 마이그레이션
+make seed-medium        # 데이터 시딩 (10K/50K/100K)
+make up-sync WORKERS=8  # Gunicorn sync 서버 시작 (WORKERS 지정)
+
+# 서버 전환
+make switch TO=gevent WORKERS=8
+
+# 상태 확인
+make status
+make check-health
+
+# 전체 명령어 목록
+make help
+```
+
+### 2. Docker Compose로 직접 실행
 
 ```bash
 cd exbuy
 
 # 빌드
-docker compose build web-gunicorn-sync
+docker compose build
 
-# 실행 (마이그레이션 자동 실행됨)
-docker compose --profile gunicorn-sync up -d
+# 실행 (WORKERS 환경변수 지정 가능)
+WORKERS=8 docker compose --profile gunicorn-sync up -d
 
 # 로그 확인
 docker compose logs -f web-gunicorn-sync
 
 # Django 관리 명령 실행
-# docker compose run을 사용하면 entrypoint를 통해 전달된 명령이 실행됩니다
-docker compose run --rm web-gunicorn-sync python manage.py makemigrations
 docker compose run --rm web-gunicorn-sync python manage.py migrate
-docker compose run --rm web-gunicorn-sync python manage.py seed_data --products 10000 --orders 50000 --reviews 100000
+docker compose run --rm web-gunicorn-sync python manage.py seed_data --products 10000
 
-# 또는 실행 중인 컨테이너에서 명령 실행
-docker compose exec web-gunicorn-sync python manage.py seed_data --products 1000
-
-# 서비스 중지
+# 서비스 종료
 docker compose down
 ```
 
-### 2. 로컬 개발 환경
+### 3. 로컬 개발 환경
 
 ```bash
 cd exbuy
@@ -214,7 +235,7 @@ python manage.py seed_data --products 1000 --orders 5000 --reviews 10000
 python manage.py runserver
 ```
 
-### 3. Gunicorn/Uvicorn으로 실행
+### 4. Gunicorn/Uvicorn으로 실행
 
 ```bash
 # Gunicorn (WSGI)
@@ -256,30 +277,68 @@ POST /api/inventory/reserve?lock_type=pessimistic
 
 ## 부하 테스트
 
-### K6 스크립트 실행
+### Makefile을 사용한 테스트 (추천)
+
+```bash
+# 기본 테스트
+make test-mixed              # 혼합 테스트 (60% 읽기, 40% 쓰기)
+make test-read-heavy         # 읽기 중심 (80% 읽기)
+make test-write-heavy        # 쓰기 중심 (70% 쓰기)
+make test-read-only          # 순수 읽기 (100% 읽기)
+
+# 파라미터 커스터마이징
+make test-mixed MAX_VU=300 DURATION=10m
+make test-read-only SERVER=uvicorn MAX_VU=500 DURATION=15m
+
+# 빠른 벤치마크 (1분)
+make benchmark SERVER=sync MAX_VU=200
+
+# 서버별 전체 테스트 (워밍업 + 3개 시나리오)
+make test-gunicorn-sync
+make test-gunicorn-gevent
+
+# 결과 비교
+make compare-results
+make show-history
+```
+
+**사용 가능한 파라미터:**
+- `SERVER`: gunicorn-sync, gunicorn-gevent, gunicorn-gthread, uvicorn
+- `WORKERS`: Worker 프로세스 수 (기본: 4)
+- `MAX_VU`: Virtual Users (기본: 200)
+- `DURATION`: 테스트 지속 시간 (기본: 5m)
+- `RAMP_UP/RAMP_DOWN`: 램프업/다운 시간 (기본: 30s)
+
+### K6 직접 실행
 
 ```bash
 cd exbuy
 
-# 읽기 중심 테스트 (80% 읽기, 20% 쓰기)
-k6 run k6-scripts/read-heavy.js
-
-# 쓰기 중심 테스트 (30% 읽기, 70% 쓰기)
-k6 run k6-scripts/write-heavy.js
-
-# 혼합 테스트 (60% 읽기, 40% 쓰기)
-k6 run k6-scripts/mixed.js
+# 환경변수로 파라미터 지정
+MAX_VU=300 DURATION=10m SERVER_TYPE=gunicorn-sync k6 run k6-scripts/mixed.js
 
 # BASE_URL 지정
-BASE_URL=http://localhost:8001 k6 run k6-scripts/mixed.js
+BASE_URL=http://localhost:9001 k6 run k6-scripts/read-heavy.js
 ```
 
-### 시나리오 커스터마이징
+### 테스트 이력 및 결과 분석
 
-`k6-scripts/*.js` 파일에서 다음을 수정할 수 있습니다:
-- `options.stages`: 부하 증가 패턴
-- `options.thresholds`: 성능 임계값
-- 엔드포인트 호출 비율
+모든 테스트는 자동으로 `results/test-history.jsonl`에 기록됩니다:
+- 타임스탬프
+- 서버 타입
+- 시나리오
+- VU/Duration/Workers
+
+```bash
+# 테스트 이력 조회
+make show-history
+
+# 결과 비교
+make compare-results
+
+# Grafana에서 확인 (타임라인에 테스트 마커 표시)
+open http://localhost:3000
+```
 
 ## 모니터링
 
@@ -339,6 +398,8 @@ python manage.py seed_data --batch-size 5000
 
 ## 환경 변수
 
+### 서버 설정
+
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `DEBUG` | `True` | 디버그 모드 |
@@ -348,33 +409,77 @@ python manage.py seed_data --batch-size 5000
 | `DB_PASSWORD` | `postgres` | DB 비밀번호 |
 | `DB_PORT` | `5432` | DB 포트 |
 | `SERVER_TYPE` | `gunicorn` | 서버 타입 (gunicorn/uvicorn) |
-| `WORKERS` | `4` | Worker 프로세스 수 |
+| `WORKERS` | `4` | Worker 프로세스 수 (동적 변경 가능) |
 | `WORKER_CLASS` | `sync` | Gunicorn worker 클래스 |
 | `LOG_LEVEL` | `INFO` | 로그 레벨 |
 
+### 테스트 파라미터 (.env.test)
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `MAX_VU` | `200` | K6 Virtual Users |
+| `DURATION` | `5m` | 테스트 지속 시간 |
+| `RAMP_UP` | `30s` | 램프업 시간 |
+| `RAMP_DOWN` | `30s` | 램프다운 시간 |
+
+**사용 예시:**
+```bash
+# Makefile에서 동적 설정
+make up-sync WORKERS=8
+make test-mixed MAX_VU=300 DURATION=10m
+
+# 환경변수로 직접 설정
+WORKERS=16 docker compose --profile uvicorn up -d
+```
+
 ## 성능 테스트 시나리오
 
-### 1. 읽기 성능 비교
+### 1. WORKERS 비교 테스트
 ```bash
-# 최적화 전
-ab -n 1000 -c 10 http://localhost:8000/api/products/1
+# 4 workers
+make switch TO=sync WORKERS=4
+make warmup
+make test-mixed
 
-# 최적화 후
-ab -n 1000 -c 10 http://localhost:8000/api/products/1?optimize=true
+# 8 workers
+make switch TO=sync WORKERS=8
+make warmup
+make test-mixed
+
+# 결과 비교
+make compare-results
 ```
 
-### 2. 동시성 테스트
+### 2. 서버별 성능 비교
 ```bash
-# 동시 주문 생성
-k6 run --vus 50 --duration 30s k6-scripts/write-heavy.js
+# 모든 서버 시작
+make up-all WORKERS=8
+
+# 순차 테스트
+make test-gunicorn-sync
+make reset
+make test-gunicorn-gevent
+make reset
+make test-uvicorn
+
+# 결과 확인
+make compare-results
+make show-history
 ```
 
-### 3. 서버 비교
+### 3. VU 증가 테스트
 ```bash
-# Gunicorn vs Uvicorn
-k6 run -e BASE_URL=http://localhost:8000 k6-scripts/mixed.js  # Gunicorn
-k6 run -e BASE_URL=http://localhost:8001 k6-scripts/mixed.js  # Uvicorn
+make up-sync WORKERS=8
+
+for VU in 100 200 300 400 500; do
+  make test-read-only MAX_VU=$VU DURATION=3m
+  sleep 30
+done
+
+make compare-results
 ```
+
+더 많은 시나리오는 [TESTING.md](TESTING.md) 참고
 
 ## 문제 해결
 
